@@ -1,6 +1,7 @@
 package fr.pchab.webrtcclient;
 
 import android.opengl.EGLContext;
+import android.util.Base64;
 import android.util.Log;
 
 import com.github.nkzawa.emitter.Emitter;
@@ -22,7 +23,12 @@ import org.webrtc.VideoCapturer;
 import org.webrtc.VideoCapturerAndroid;
 import org.webrtc.VideoSource;
 
+import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -39,6 +45,8 @@ public class WebRtcClient {
     private VideoSource videoSource;
     private RtcListener mListener;
     private Socket client;
+
+    DataChannel dc;
 
     /**
      * Implement this interface to be notified of events.
@@ -251,6 +259,7 @@ public class WebRtcClient {
 
         @Override
         public void onDataChannel(DataChannel dataChannel) {
+
         }
 
         @Override
@@ -261,6 +270,10 @@ public class WebRtcClient {
         public Peer(String id, int endPoint) {
             Log.d(TAG, "new Peer: " + id + " " + endPoint);
             this.pc = factory.createPeerConnection(iceServers, pcConstraints, this);
+
+            DataChannel.Init init = new DataChannel.Init();
+            dc = this.pc.createDataChannel("ApprtcDemo data", init);
+
             this.id = id;
             this.endPoint = endPoint;
 
@@ -343,6 +356,23 @@ public class WebRtcClient {
     private int findEndPoint() {
         for (int i = 0; i < MAX_PEER; i++) if (!endPoints[i]) return i;
         return MAX_PEER;
+    }
+
+    public void sendData(String test) {
+        String data = "MAGARI QUESTA VOLTA FUNZIONA";
+        if (dc != null) {
+            byte[] byteArray;
+                try {
+                    byteArray = data.getBytes("UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    Log.d(TAG, "Could not encode text string as UTF-8.");
+                    return;
+                }
+
+            ByteBuffer byteBuffer = ByteBuffer.wrap(byteArray);
+            DataChannel.Buffer buffer = new DataChannel.Buffer(byteBuffer, false);
+            dc.send(buffer);
+        }
     }
 
     /**

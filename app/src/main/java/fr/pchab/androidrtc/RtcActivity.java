@@ -88,6 +88,18 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
             }
         });
 
+        Button sendButton = findViewById(R.id.sendData);
+        sendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                  client.sendData("MANNAGGIA");
+                } catch (Exception e) {
+                    Log.e("MANNAGGIA", e.getMessage());
+                }
+            }
+        });
+
         vsv = (GLSurfaceView) findViewById(R.id.glview_call);
         vsv.setPreserveEGLContextOnPause(true);
         vsv.setKeepScreenOn(true);
